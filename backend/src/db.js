@@ -1,5 +1,9 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import bcrypt from 'bcryptjs'
-import { ADMIN_PASSWORD, ADMIN_USERNAME } from './config.js'
+import { ADMIN_PASSWORD, ADMIN_USERNAME, DATA_DIR } from './config.js'
+
+const STORE_PATH = path.join(DATA_DIR, 'store.json')
 
 const store = {
   admins: [],
@@ -18,6 +22,21 @@ const ids = {
 }
 
 let initialized = false
+
+function loadStore() {
+  if (!fs.existsSync(STORE_PATH)) {
+    return
+  }
+
+  const saved = JSON.parse(fs.readFileSync(STORE_PATH, 'utf8'))
+  Object.assign(store, saved.store || {})
+  Object.assign(ids, saved.ids || {})
+}
+
+function saveStore() {
+  fs.mkdirSync(DATA_DIR, { recursive: true })
+  fs.writeFileSync(STORE_PATH, JSON.stringify({ store, ids }, null, 2))
+}
 
 function now(offset = '') {
   const date = new Date()
@@ -78,6 +97,7 @@ export async function run(sql, params = []) {
     const [username, passwordHash] = params
     const id = nextId('admins')
     store.admins.push({ id, username, password_hash: passwordHash, created_at: now() })
+    saveStore()
     return { id, changes: 1 }
   }
 
@@ -85,6 +105,7 @@ export async function run(sql, params = []) {
     const [name, slug] = params
     const id = nextId('categories')
     store.categories.push({ id, name, slug, created_at: now() })
+    saveStore()
     return { id, changes: 1 }
   }
 
@@ -94,6 +115,7 @@ export async function run(sql, params = []) {
     if (category) {
       category.name = name
       category.slug = slug
+      saveStore()
     }
     return { id: Number(id), changes: category ? 1 : 0 }
   }
@@ -130,6 +152,7 @@ export async function run(sql, params = []) {
       created_at: now(),
       updated_at: now(),
     })
+    saveStore()
     return { id, changes: 1 }
   }
 
@@ -149,6 +172,7 @@ export async function run(sql, params = []) {
         is_published: isPublished ? 1 : 0,
         updated_at: now(),
       })
+      saveStore()
     }
     return { id: Number(id), changes: product ? 1 : 0 }
   }
@@ -159,6 +183,7 @@ export async function run(sql, params = []) {
     if (product) {
       product.stock = Number(stock)
       product.updated_at = now()
+      saveStore()
     }
     return { id: Number(id), changes: product ? 1 : 0 }
   }
@@ -169,6 +194,7 @@ export async function run(sql, params = []) {
     if (product) {
       product.is_published = isPublished ? 1 : 0
       product.updated_at = now()
+      saveStore()
     }
     return { id: Number(id), changes: product ? 1 : 0 }
   }
@@ -186,6 +212,7 @@ export async function run(sql, params = []) {
       device_type: deviceType || 'unknown',
       created_at: now(offset),
     })
+    saveStore()
     return { id, changes: 1 }
   }
 
@@ -201,6 +228,7 @@ export async function run(sql, params = []) {
       detail,
       created_at: now(),
     })
+    saveStore()
     return { id, changes: 1 }
   }
 
@@ -496,6 +524,7 @@ export async function initializeDatabase() {
     return
   }
   initialized = true
+  loadStore()
   await seedAdmin()
   await seedCategories()
   await seedProducts()
