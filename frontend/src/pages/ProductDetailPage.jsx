@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Copy, PackageOpen } from 'lucide-react'
 import { api } from '../api'
+import { fallbackProducts } from '../fallbackProducts'
 import { useTrackPageView } from '../hooks'
 
 const TIP_TEXT = '\u8be5\u7f51\u9875\u4ec5\u5c55\u793a\u7269\u54c1\u4fe1\u606f\u4ee5\u53ca\u5e93\u5b58\u591a\u5c11\uff0c\u5177\u4f53\u8d2d\u4e70\u8bf7\u8054\u7cfbQQ\uff1a225494936\uff0c\u6682\u65f6\u53ea\u652f\u6301\u4e00\u56ed\u533a\u81ea\u63d0'
@@ -21,6 +22,13 @@ export function ProductDetailPage() {
         setStatus('ready')
       })
       .catch(() => {
+        const fallbackProduct = fallbackProducts.find((item) => String(item.id) === String(id))
+        if (fallbackProduct) {
+          setProduct(fallbackProduct)
+          document.title = `${fallbackProduct.name} - \u95f2\u7f6e\u597d\u7269\u5c55\u793a\u7ad9`
+          setStatus('ready')
+          return
+        }
         setStatus('missing')
       })
   }, [id])

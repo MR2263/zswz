@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import { api } from '../api'
+import { fallbackProducts } from '../fallbackProducts'
 import { useTrackPageView } from '../hooks'
 import { ProductCard } from '../components/ProductCard'
 
@@ -18,6 +19,9 @@ export function StorefrontPage() {
     api.get('/public/products')
       .then((response) => {
         setProducts(response.data)
+      })
+      .catch(() => {
+        setProducts(fallbackProducts)
       })
       .finally(() => {
         setLoading(false)

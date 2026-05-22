@@ -6,3 +6,8 @@ backend/uploads
 *.log
 
 .vercel
+
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*
