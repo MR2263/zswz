@@ -60,6 +60,55 @@ router.get('/analytics/trend', async (_request, response) => {
   response.json(rows)
 })
 
+router.get('/analytics/summary', async (_request, response) => {
+  const [totalViews, todayViews, uniqueVisitors, trend, hotProducts, deviceStats, recentPages] = await Promise.all([
+    get('SELECT COUNT(*) AS count FROM page_views'),
+    get(`SELECT COUNT(*) AS count FROM page_views WHERE date(created_at) = date('now')`),
+    get('SELECT COUNT(DISTINCT session_id) AS count FROM page_views'),
+    all(
+      `SELECT strftime('%Y-%m-%d', created_at) AS day, COUNT(*) AS views
+       FROM page_views
+       WHERE datetime(created_at) >= datetime('now', '-6 day')
+       GROUP BY day
+       ORDER BY day ASC`,
+    ),
+    all(
+      `SELECT p.id, p.name, COUNT(v.id) AS views
+       FROM page_views v
+       LEFT JOIN products p ON p.id = v.product_id
+       WHERE v.product_id IS NOT NULL
+       GROUP BY p.id
+       ORDER BY views DESC
+       LIMIT 5`,
+    ),
+    all(
+      `SELECT COALESCE(device_type, 'unknown') AS device_type, COUNT(*) AS count
+       FROM page_views
+       GROUP BY device_type
+       ORDER BY count DESC`,
+    ),
+    all(
+      `SELECT path, COUNT(*) AS views, MAX(created_at) AS lastVisitedAt
+       FROM page_views
+       GROUP BY path
+       ORDER BY lastVisitedAt DESC
+       LIMIT 6`,
+    ),
+  ])
+
+  response.json({
+    cards: {
+      totalViews: totalViews.count,
+      todayViews: todayViews.count,
+      uniqueVisitors: uniqueVisitors.count,
+    },
+    trend,
+    hotProducts,
+    deviceStats,
+    recentPages,
+  })
+})
+
 router.get('/categories', async (_request, response) => {
   const rows = await all('SELECT id, name, slug, created_at FROM categories ORDER BY id DESC')
   response.json(rows)
@@ -250,4 +299,3 @@ router.get('/export/analytics', async (_request, response) => {
 })
 
 export default router
-

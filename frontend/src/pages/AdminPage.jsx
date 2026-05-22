@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Download, LogOut, PackagePlus, Plus, Search, Upload } from 'lucide-react'
+import { Download, LogOut, PackagePlus, Plus, Search, Upload, Users } from 'lucide-react'
 import { api, FILE_BASE_URL } from '../api'
 
 const emptyProduct = {
@@ -18,6 +18,7 @@ export function AdminPage() {
   const [token, setToken] = useState(window.localStorage.getItem('admin_token') || '')
   const [loginForm, setLoginForm] = useState({ username: 'admin', password: 'admin123456' })
   const [overview, setOverview] = useState(null)
+  const [visitorStats, setVisitorStats] = useState(null)
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [productForm, setProductForm] = useState(emptyProduct)
@@ -30,10 +31,12 @@ export function AdminPage() {
   const loadDashboard = () => {
     Promise.all([
       api.get('/admin/overview'),
+      api.get('/admin/analytics/summary'),
       api.get('/admin/products'),
       api.get('/admin/categories'),
-    ]).then(([overviewResponse, productsResponse, categoriesResponse]) => {
+    ]).then(([overviewResponse, visitorResponse, productsResponse, categoriesResponse]) => {
       setOverview(overviewResponse.data)
+      setVisitorStats(visitorResponse.data)
       setProducts(productsResponse.data)
       setCategories(categoriesResponse.data)
     })
@@ -54,6 +57,10 @@ export function AdminPage() {
   }, [products, keyword])
 
   const lowStockProducts = overview?.lowStockProducts || []
+  const trendRows = visitorStats?.trend || []
+  const maxTrendViews = Math.max(...trendRows.map((item) => item.views), 1)
+  const deviceRows = visitorStats?.deviceStats || []
+  const totalDeviceViews = Math.max(deviceRows.reduce((sum, item) => sum + item.count, 0), 1)
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -235,6 +242,10 @@ export function AdminPage() {
         <button type="button" className={activePanel === 'category' ? 'is-active' : ''} onClick={() => setActivePanel('category')}>
           {'\u5206\u7c7b'}
         </button>
+        <button type="button" className={activePanel === 'visitors' ? 'is-active' : ''} onClick={() => setActivePanel('visitors')}>
+          <Users size={16} />
+          {'\u8bbf\u5ba2'}
+        </button>
       </nav>
 
       {activePanel === 'products' ? (
@@ -264,7 +275,7 @@ export function AdminPage() {
                       {product.isPublished ? '\u4e0a\u67b6\u4e2d' : '\u5df2\u4e0b\u67b6'}
                     </span>
                   </div>
-                  <p>{product.categoryName || '\u672a\u5206\u7c7b'} · {product.condition}</p>
+                  <p>{product.categoryName || '\u672a\u5206\u7c7b'} {'\u00b7'} {product.condition}</p>
                   <div className="admin-product-meta">
                     <strong>{`\u00a5${product.price}`}</strong>
                     <span>{`\u5e93\u5b58 ${product.stock}`}</span>
@@ -326,6 +337,80 @@ export function AdminPage() {
             {categories.map((category) => (
               <span key={category.id} className="chip">{category.name}</span>
             ))}
+          </div>
+        </section>
+      ) : null}
+
+      {activePanel === 'visitors' ? (
+        <section className="admin-panel visitor-panel">
+          <div className="visitor-card-grid">
+            <div>
+              <span>{'\u4eca\u65e5\u8bbf\u95ee'}</span>
+              <strong>{visitorStats?.cards.todayViews ?? 0}</strong>
+            </div>
+            <div>
+              <span>{'\u603b\u8bbf\u95ee'}</span>
+              <strong>{visitorStats?.cards.totalViews ?? 0}</strong>
+            </div>
+            <div>
+              <span>{'\u72ec\u7acb\u8bbf\u5ba2'}</span>
+              <strong>{visitorStats?.cards.uniqueVisitors ?? 0}</strong>
+            </div>
+          </div>
+
+          <div className="visitor-section">
+            <h2>{'\u8fd1 7 \u5929\u8d8b\u52bf'}</h2>
+            <div className="mini-trend">
+              {trendRows.map((item) => (
+                <div key={item.day} className="mini-trend-item">
+                  <span>{item.views}</span>
+                  <i style={{ height: `${Math.max(8, (item.views / maxTrendViews) * 72)}px` }} />
+                  <em>{item.day.slice(5)}</em>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="visitor-section">
+            <h2>{'\u70ed\u95e8\u5546\u54c1'}</h2>
+            <div className="visitor-list">
+              {(visitorStats?.hotProducts || []).map((item, index) => (
+                <div key={item.id || index} className="visitor-row">
+                  <span>{index + 1}. {item.name || '\u672a\u77e5\u5546\u54c1'}</span>
+                  <strong>{`${item.views} \u6b21`}</strong>
+                </div>
+              ))}
+              {(visitorStats?.hotProducts || []).length === 0 ? (
+                <div className="visitor-empty">{'\u6682\u65e0\u5546\u54c1\u8bbf\u95ee\u6570\u636e'}</div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="visitor-section">
+            <h2>{'\u8bbe\u5907\u6765\u6e90'}</h2>
+            <div className="visitor-list">
+              {deviceRows.map((item) => (
+                <div key={item.device_type} className="device-row">
+                  <div>
+                    <span>{item.device_type === 'mobile' ? '\u79fb\u52a8\u7aef' : item.device_type === 'desktop' ? '\u7535\u8111\u7aef' : '\u672a\u77e5\u8bbe\u5907'}</span>
+                    <strong>{`${item.count} \u6b21`}</strong>
+                  </div>
+                  <i style={{ width: `${Math.max(8, (item.count / totalDeviceViews) * 100)}%` }} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="visitor-section">
+            <h2>{'\u6700\u8fd1\u8bbf\u95ee\u9875\u9762'}</h2>
+            <div className="visitor-list">
+              {(visitorStats?.recentPages || []).map((item) => (
+                <div key={item.path} className="visitor-row">
+                  <span>{item.path}</span>
+                  <strong>{`${item.views} \u6b21`}</strong>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       ) : null}

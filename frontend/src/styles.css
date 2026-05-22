@@ -472,7 +472,7 @@ button {
   top: 66px;
   z-index: 4;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-top: 12px;
   padding: 6px;
@@ -645,6 +645,136 @@ button {
 .admin-category-form {
   display: grid;
   gap: 10px;
+}
+
+.visitor-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.visitor-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.visitor-card-grid div {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.visitor-card-grid span {
+  display: block;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.visitor-card-grid strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.3rem;
+}
+
+.visitor-section {
+  display: grid;
+  gap: 10px;
+}
+
+.visitor-section h2 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.mini-trend {
+  height: 122px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: end;
+  gap: 8px;
+  padding: 10px 6px 0;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mini-trend-item {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 18px 1fr 18px;
+  justify-items: center;
+  align-items: end;
+  min-width: 0;
+}
+
+.mini-trend-item span,
+.mini-trend-item em {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-style: normal;
+}
+
+.mini-trend-item i {
+  width: 100%;
+  max-width: 22px;
+  display: block;
+  border-radius: 999px 999px 0 0;
+  background: #0f766e;
+}
+
+.visitor-list {
+  display: grid;
+  gap: 8px;
+}
+
+.visitor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.visitor-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #334155;
+}
+
+.visitor-row strong {
+  flex: 0 0 auto;
+  color: #0f766e;
+}
+
+.device-row {
+  display: grid;
+  gap: 7px;
+}
+
+.device-row div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #334155;
+}
+
+.device-row i {
+  height: 8px;
+  display: block;
+  border-radius: 999px;
+  background: #0f766e;
+}
+
+.visitor-empty {
+  padding: 14px;
+  text-align: center;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
 }
 
 .full-width {
