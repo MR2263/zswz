@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:4000/api')
 export const FILE_BASE_URL = API_BASE_URL.replace(/\/api$/, '')
 
 export const api = axios.create({
@@ -15,4 +15,3 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
-
